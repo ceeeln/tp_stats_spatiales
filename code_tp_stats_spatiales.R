@@ -82,3 +82,25 @@ ggplot2::ggplot() + geom_sf(data= depts_bretagne_geo) +  #geom des dep
   geom_sf_text(data=centr_depts_bretagne, aes(label=lib), size=4)+
   theme_void()
 
+# Q15
+
+#intersection de deux fonds st_intesect renvoie une liste
+
+communes_centr_depts = st_intersects(
+  centr_depts_bretagne, #liste longueur dictée par le 1er
+  communes_Bretagne
+)
+str(communes_centr_depts)
+
+communes_centr_depts = st_intersection( #renvoie un polygone
+  centr_depts_bretagne, #liste longueur dictée par le 1er
+  communes_Bretagne
+)
+
+#est-ce que mes centres sont dans mes communes
+communes_centr_depts = st_within(
+  centr_depts_bretagne, #liste longueur dictée par le 1er
+  communes_Bretagne
+)
+
+
