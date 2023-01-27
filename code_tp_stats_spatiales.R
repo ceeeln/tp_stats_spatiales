@@ -116,3 +116,60 @@ distances = st_distance(chefs_lieux %>%  arrange(code),
 #avec false on recupere une matrice
 
 name(distances) = c(22,29,35,53)
+
+# 18 - communes à moins de 20 ####
+# a buffer 
+buff_centr_sf <- st_buffer(communes_centr_depts_sf, 20000)
+buff_centr_sf %>%  str()
+buff_centr_sf %>% st_geometry() %>% plot()
+plot(communes_centr_depts_sf %>% st_geometry(), add = TRUE)
+
+#b
+# Attention: Deux résultats possibles
+# Intersection
+# Ne retenir que la partie des communes intersectantes qui est dans le buffer
+com_buff_sf <- st_intersection(
+  communes_bretagne,
+  buff_centr_sf
+)
+str(com_buff_sf)
+plot(com_buff_sf %>% st_geometry())
+
+# OU st_intersects
+# Permet de récupérer l'intégralité des polygones des communes intersectantes
+
+com_buff2_index <- st_intersects(buff_centr_sf, communes_bretagne)
+com_buff2_sf <- communes_bretagne[unlist(com_buff2_index),]
+
+library(ggplot2)
+
+ggplot() +
+  geom_sf(data = com_buff2_sf, fill = NA, colour = "grey75") +
+  geom_sf(data = com_buff_sf, fill = "steelblue") +
+  theme_void()
+
+com_buff2_sf %>% st_drop_geometry() %>%  count(dep)
+com_buff_sf %>% st_drop_geometry() %>%  count(dep)
+# même résultat en termes de nb de communes (attendu)
+
+
+# 19 - st_transform -------------------------------------------------------
+
+communes_bretagne_wgs84 <- communes_bretagne %>% 
+  st_transform(crs = 4326) %>% 
+  mutate(surf3 = st_area(geometry))
+st_crs(communes_bretagne_wgs84)
+
+par(mfcol = c(1,2))
+plot(communes_bretagne_wgs84 %>% st_geometry(), col = "steelblue")
+plot(communes_bretagne %>% st_geometry(), col = "steelblue")
+dev.off()
+
+ggplot() +
+  geom_sf(data = communes_bretagne, fill = NA) +
+  theme_void()
+
+communes_bretagne_wgs84 %>% 
+  mutate(surf3 = units::set_units(surf3, "km^2")) %>%
+  select(starts_with("surf")) %>% 
+  summary()
