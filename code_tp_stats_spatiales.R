@@ -5,7 +5,6 @@ commune_francemetro = st_read("fonds/commune_francemetro_2021.shp", options = "E
 str(commune_francemetro)
 summary(commune_francemetro)
 
-
 View(commune_francemetro[1:10,])
 
 st_crs(commune_francemetro)
@@ -16,18 +15,70 @@ plot(communes_Bretagne, lwd= 0.1)
 plot(st_geometry(communes_Bretagne), lwd= 0.1) #ne conserve que la géométrie de la region
 
 communes_Bretagne$surf2 = st_area(st_geometry(communes_Bretagne))
-#= geometry
-#mutate
+
 units(communes_Bretagne$surf2) <- "km^2"
 
-#Q11
+# Q11
 #C different parce que surf crée a partir d'un polygone plus précis "valeur réelle"
 
-#Q12
-dept_bretagne = communes_Bretagne %>% 
+# Q12
+# summarize écrase les données autant de ligne que de groupes
+depts_bretagne <- communes_Bretagne %>% 
   group_by(dep) %>% 
-  mutate(superficie_dep = sum(surf)) %>% 
-  select(dep, superficie_dep) %>% 
-  distinct(dep, .keep_all = TRUE)
+  summarise(
+    surf = sum(surf)
+  )
+str(depts_bretagne) # tjrs objet sf
+plot(depts_bretagne %>% st_geometry())
 
-plot(st_geometry(dept_bretagne))
+# Q13
+# st_geo pour garder que la geometry
+communes_Bretagne %>% st_union() %>% st_geometry() %>% plot()
+depts_bretagne_geo <- communes_Bretagne %>% 
+  group_by(dep) %>% 
+  summarise(
+    geometry = st_union(geometry)
+  )
+plot(depts_bretagne_geo)
+#on a gardé seulement dep et geometry
+
+# Q14
+
+centr_depts_bretagne = depts_bretagne_geo %>% 
+  st_centroid()
+str(centr_depts_bretagne)
+st_crs(centr_depts_bretagne)
+
+plot(depts_bretagne_geo %>% st_geometry())
+plot(centr_depts_bretagne %>% st_geometry(), add = TRUE)
+
+#Nouveau dataframe
+lib_depts = data.frame(
+  code = as.character(c(22,29,35,56)), #pour jointure ap
+  lib = c("Cotes-d'Armor", "Finistère", "Ille-et-Vilaine", "Morbihan")
+)
+
+centr_depts_bretagne <- centr_depts_bretagne %>% 
+  left_join(
+    lib_depts,
+    by = c("dep" = "code") #champ qui décrit la clef
+  )
+
+coords_centr <- st_coordinates(centr_depts_bretagne) %>% 
+  bind_cols( #be sure de l'ordre des lignes
+    centr_depts_bretagne %>%
+      select(dep, lib) %>% 
+      st_drop_geometry()
+  )
+str(coords_centr)
+
+plot(depts_bretagne_geo %>% st_geometry())
+plot(centr_depts_bretagne %>% st_geometry(), add = TRUE)
+text(coords_centr, labels = coords_centr$lib, adj = c(0.5,-0.2))
+
+library(ggplot2)
+ggplot2::ggplot() + geom_sf(data= depts_bretagne_geo) +  #geom des dep
+  geom_sf(data=centr_depts_bretagne) + #geom des centroides
+  geom_sf_text(data=centr_depts_bretagne, aes(label=lib), size=4)+
+  theme_void()
+
