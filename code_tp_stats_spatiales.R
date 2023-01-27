@@ -104,3 +104,15 @@ communes_centr_depts = st_within(
 )
 
 
+# Q17
+
+chefs_lieux = communes_Bretagne %>% filter(libelle %in% c("Rennes", "Saint-Brieuc", "Quimper", "Vannes")) %>% 
+  st_centroid()
+
+distances = st_distance(chefs_lieux %>%  arrange(code),
+                        communes_centr_depts_sf %>% arrange(code),
+                        by_element = TRUE) #pour avoir la distance uniquement entre les elmt de mm position
+#distance entre x1 et y1 puis x2 et y2 etc.
+#avec false on recupere une matrice
+
+name(distances) = c(22,29,35,53)
