@@ -119,7 +119,7 @@ name(distances) = c(22,29,35,53)
 
 # 18 - communes à moins de 20 ####
 # a buffer 
-buff_centr_sf <- st_buffer(communes_centr_depts_sf, 20000)
+buff_centr_sf <- st_buffer(communes_centr_depts_sf, 20000) #unite de fonds en m
 buff_centr_sf %>%  str()
 buff_centr_sf %>% st_geometry() %>% plot()
 plot(communes_centr_depts_sf %>% st_geometry(), add = TRUE)
