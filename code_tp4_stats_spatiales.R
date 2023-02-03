@@ -4,7 +4,7 @@ library(sf)
 library(mapsf)
 library(classInt)
 library(leaflet)
-##############Exercice 1 ##########
+##############Exercise 1 ##########
 #data importation
 pop19 = readxl::read_xlsx("fonds/Pop_legales_2019.xlsx")
 # Q1
@@ -44,6 +44,7 @@ quantile(metro_sf$DENSITE)
 # Q5 comparer la distribution de la variable
 #continue avec celle de la variable discrétisee
 
+# a
 #construction intervalle a partir des donnees
 n=5
 quantile_decoupe <- classInt::classIntervals(
@@ -53,18 +54,59 @@ quantile_decoupe <- classInt::classIntervals(
 summar(quantile_decoupe$var) #quantile initial
 summary(quantile_decoupe$brks) #borne des intervalles/ quantile avec de nouvelles classes
 
-#construction var categorielle
-table(cut(metro_sf$DENSITE,
-          breaks= quantile_decoupe$brks,
-          include.lowest = TRUE,
-          right=FALSE))
+
+
+# l'objet est composé de deux éléments
+# var = variable originale
+# brks = les bornes des intervalles demandées
+
+decoupage_quantile$brks
+# => 1er intervalle: 0 à 15.35
 
 # b
 pal1 <- RColorBrewer::brewer.pal(n = 5, name = "YlOrRd")
 
 plot(quantile_decoupe, pal = pal1, main= "Découpage quantile")
 
+#construction var categorielle
+table(cut(metro_sf$DENSITE,
+          breaks= quantile_decoupe$brks,
+          include.lowest = TRUE,
+          right=FALSE))
 # c
+
+decoupage_jenks <- classIntervals(
+  metro_sf$DENSITE,
+  style = "jenks",
+  n = 5
+)
+decoupage_jenks$brks
+
+plot(decoupage_jenks, pal = pal1, main = "jenks")
+table(
+  cut(
+    metro_sf$DENSITE,
+    breaks = decoupage_jenks$brks,
+    include.lowest = TRUE, 
+    right = FALSE
+  )
+)
+
+decoupage_pretty <- classIntervals(
+  metro_sf$DENSITE,
+  style = "pretty",
+  n = 5
+)
+decoupage_pretty$brks
+plot(decoupage_pretty, pal = pal1, main = "pretty")
+table(
+  cut(
+    metro_sf$DENSITE,
+    breaks = decoupage_pretty$brks,
+    include.lowest = TRUE, 
+    right = FALSE
+  )
+)
 
 # d
 metro_sf = metro_sf %>% mutate(
@@ -79,10 +121,15 @@ metro_sf = metro_sf %>% mutate(
 
 #useNA : pour verifier pas de NA dans nos donnees
 table(metro_sf$DENSITE_cat, useNA = "always")
+
+metro_sf %>% 
+  ggplot() +
+  geom_bar(aes(x=DENSITE_cat))
+
 plot(metro_sf["DENSITE_cat"], border=FALSE, pal=pal1)
 
 
-###########Exercice 2#############
+###########Exercise 2#############
 # Q1
 dep_sf = st_read("fonds/Fonds_carte/France_metro/dep_francemetro_2021.shp",
         options = "ENCODING=WINDOWS-1252")
@@ -184,8 +231,19 @@ dev.off()
 #exportation fond de carte
 sf::st_write(dep_sf, "dept_tx_pauvrete_2018.gpkg")
 
-##########Exercice 3############
-reg_sf = st_read("fonds/Fonds_carte/France_metro/reg_francemetro_2021.shp",
-                 options = "ENCODING=WINDOWS-1252")
-#tx_pauvrete = readxl::read_xlsx("fonds/Donnees/Pop_region_2019.xlsx")
+##########Exercise 3############
 
+#Fond regional
+region = st_read("fonds/Fonds_carte/France_metro/reg_francemetro_2021.shp",
+                 options = "ENCODING=WINDOWS-1252")
+
+#Population data
+pop_region = readxl::read_xlsx("fonds/Donnees/pop_region_2019.xlsx")
+
+#Join
+region_pop = region %>% left_join(pop_region, by=c('code'='reg')) %>% 
+  mutate(densite = pop/surf)
+
+#Map creation
+#Map representation
+mf_map(region_pop)
