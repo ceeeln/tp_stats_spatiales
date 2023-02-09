@@ -307,13 +307,13 @@ S'il est négatif, cela indique qu'il est plutôt entouré d'Iris ayant des nive
 Combien d'indicateurs locaux sont-ils négatifs ?
 
 
-
 e. Nous cherchons à représenter les Lisa sur une carte des Iris marseillais. Pour cela, ajouter les Lisa comme une nouvelle variable du fond des iris, variable que vous nommerez `LISA`.
 
 
 f. Interprétez ce que vous voyez sur la carte.
 
-
+rouge : autocorraltion positive et assez forte
+bleu foncé : autocorr negative et assez forte
 
 g. Comme pour le I de Moran, il est nécessaire avant d'aller plus loin dans l'interprétation, de savoir si les Lisa calculés sont significativement différents de zéro. Dans l'objet `mars_rev_lisa`, repérez la colonne correspondant à la pvaleur du test associé à la mesure des Lisa et placez-la dans une nouvelle variable du fond des Iris intitulée `LISA_PVAL`.
 
